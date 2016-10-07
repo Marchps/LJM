@@ -2,7 +2,9 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use MicroCMS\Domain\Comment;
+use MicroCMS\Domain\Article;
 use MicroCMS\Form\Type\CommentType;
+use MicroCMS\Form\Type\ArticleType;
 
 // Home page
 $app->get('/', function () use ($app) {
@@ -42,3 +44,53 @@ $app->get('/login', function(Request $request) use ($app) {
         'last_username' => $app['session']->get('_security.last_username'),
     ));
 })->bind('login');
+
+// Admin home page
+$app->get('/admin', function() use ($app) {
+    $articles = $app['dao.article']->findAll();
+    $comments = $app['dao.comment']->findAll();
+    $users = $app['dao.user']->findAll();
+    return $app['twig']->render('admin.html.twig', array(
+        'articles' => $articles,
+        'comments' => $comments,
+        'users' => $users));
+})->bind('admin');
+
+// Add a new article
+$app->match('/admin/article/add', function(Request $request) use ($app) {
+    $article = new Article();
+    $articleForm = $app['form.factory']->create(new ArticleType(), $article);
+    $articleForm->handleRequest($request);
+    if ($articleForm->isSubmitted() && $articleForm->isValid()) {
+        $app['dao.article']->save($article);
+        $app['session']->getFlashBag()->add('success', 'The article was successfully created.');
+    }
+    return $app['twig']->render('article_form.html.twig', array(
+        'title' => 'New article',
+        'articleForm' => $articleForm->createView()));
+})->bind('admin_article_add');
+
+// Edit an existing article
+$app->match('/admin/article/{id}/edit', function($id, Request $request) use ($app) {
+    $article = $app['dao.article']->find($id);
+    $articleForm = $app['form.factory']->create(new ArticleType(), $article);
+    $articleForm->handleRequest($request);
+    if ($articleForm->isSubmitted() && $articleForm->isValid()) {
+        $app['dao.article']->save($article);
+        $app['session']->getFlashBag()->add('success', 'The article was succesfully updated.');
+    }
+    return $app['twig']->render('article_form.html.twig', array(
+        'title' => 'Edit article',
+        'articleForm' => $articleForm->createView()));
+})->bind('admin_article_edit');
+
+// Remove an article
+$app->get('/admin/article/{id}/delete', function($id, Request $request) use ($app) {
+    // Delete all associated comments
+    $app['dao.comment']->deleteAllByArticle($id);
+    // Delete the article
+    $app['dao.article']->delete($id);
+    $app['session']->getFlashBag()->add('success', 'The article was succesfully removed.');
+    // Redirect to admin home page
+    return $app->redirect($app['url_generator']->generate('admin'));
+})->bind('admin_article_delete');
