@@ -7,6 +7,10 @@ use Symfony\Component\Debug\ExceptionHandler;
 ErrorHandler::register();
 ExceptionHandler::register();
 
+/*use Silex\Application;
+
+$app->register(new \Media\MediaServiceProvider());*/
+
 // Register service providers
 $app->register(new Silex\Provider\DoctrineServiceProvider());
 $app->register(new Silex\Provider\TwigServiceProvider(), array(
@@ -35,6 +39,8 @@ $app->register(new Silex\Provider\SecurityServiceProvider(), array(
 ));
 $app->register(new Silex\Provider\FormServiceProvider());
 $app->register(new Silex\Provider\TranslationServiceProvider());
+//$app->register(new Media\Provider\MediaServiceProvider());
+
 
 // Register services
 $app['dao.article'] = $app->share(function ($app) {

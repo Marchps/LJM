@@ -35,6 +35,7 @@ class ArticleDAO extends DAO
         $article->setId($row['art_id']);
         $article->setTitle($row['art_title']);
         $article->setContent($row['art_content']);
+        $article->setImage($row['art_img']);
         return $article;
     }
 
@@ -61,9 +62,17 @@ class ArticleDAO extends DAO
      * @param \MicroCMS\Domain\Article $article The article to save
      */
     public function save(Article $article) {
+        
+        print_r($article->getImage());
+        /* Make sure that Upload Directory is properly configured and writable */
+        $path = __DIR__.'/../web/upload/';
+        $filename = $_FILES['image']['name'];
+        /*$files['image']->move($path,$filename);*/
+
         $articleData = array(
             'art_title' => $article->getTitle(),
             'art_content' => $article->getContent(),
+            'art_img' => $filename,
             );
 
         if ($article->getId()) {

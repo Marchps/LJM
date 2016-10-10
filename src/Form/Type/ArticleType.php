@@ -11,6 +11,7 @@ class ArticleType extends AbstractType
     {
         $builder
             ->add('title', 'text')
+            ->add('image', 'file')
             ->add('content', 'textarea');
     }
 
